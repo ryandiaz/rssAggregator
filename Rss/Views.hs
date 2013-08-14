@@ -46,25 +46,7 @@ respondHtml ctitle content = okHtml $ renderHtml $ docTypeHtml $ do
     div ! class_ "navbar navbar-fixed-top navbar-inverse" ! id "page-nav" $ do
       div ! class_ "navbar-inner" $ do
         div ! class_ "container-fluid" $ do
-          a ! href "/" ! class_ "brand" $ "Rss Reader" 
-    script ! src "/static/js/jquery.js" $ ""
-    script ! src "/static/js/bootstrap.js" $ ""
-    script ! src "http://code.jquery.com/jquery-latest.min.js" $ ""
-    script ! src "http://code.jquery.com/jquery-1.10.1.min.js" $ ""
-    script ! src "/static/js/jquery.form.js" $ ""
-    script ! src "/static/js/jquery.js" $ ""
-    script ! src "/static/js/jquery.mockjax.js" $ ""
-    script ! src "/static/js/jquery-1.6.4.js" $ ""
-    script ! src "/static/js/jquery-1.7.2.js" $ ""
-    script ! src "/static/js/jquery-1.8.3.js" $ ""
-    script ! src "/static/js/jquery-1.9.0.js" $ ""
-    script ! src "/static/js/jquery.validate.js" $ ""
-    script ! src "/static/js/jquery.validate.min.js" $ ""
-    script ! src "/static/js/additional-methods.js" $ ""
-    script ! src "/static/js/additional-methods.min.js" $ ""
-    script ! src "/static/js/tasks.js" $ ""
-    script ! src "/static/js/newtask.js" $ ""
-    script ! src "/static/js/user_select.js" $ ""
+          a ! href "/" ! class_ "brand" $ "Rss Reader"
     content
 
 -- Projects -----
@@ -73,4 +55,9 @@ displayHomePage :: UserName -> Html
 displayHomePage user = do
   div ! class_ "welcome" $ do
    h2 $ toHtml $ "Welcome " ++ T.unpack user
+  div ! class_ "user-input" $ do
+    form ! class_ "removenotif" ! action "/feed/add" ! method "post" $ do
+      label ! for "feed" $ "feed url: "
+      input ! type_ "text" ! name "feed" ! value ""
+      button ! class_ "removeNotif" ! type_ "submit" $ "add feed"
    

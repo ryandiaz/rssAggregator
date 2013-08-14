@@ -29,6 +29,7 @@ import Data.List.Split
 import Data.Aeson (decode, encode, toJSON)
 import Text.Blaze.Renderer.Text
 import Text.Blaze.Html5 hiding (Tag, map, head, select, label)
+import Hails.HttpClient
 
 import qualified Web.Simple.Responses as W
 
@@ -42,3 +43,13 @@ server = mkRouter $ do
   get "/" $ withUserOrDoAuth $ \user -> do
     priv <- appPriv
     respond $ respondHtml "Home" $ displayHomePage user
+
+  post "/feed/add" $ withUserOrDoAuth $ \user -> do
+    priv <- appPriv
+    ldoc <- request >>= labeledRequestToHson
+    fdoc <- include ["feed"] `liftM` (request >>= labeledRequestToHson >>= (liftLIO. unlabelP priv))
+    let feedUrl = ("feed" `at` fdoc) :: String
+    content <- liftLIO $ simpleGetHttpP priv feedUrl
+    let bodyText = respBody content
+    trace (L8.unpack bodyText) $ respond $ redirectTo "/"
+
