@@ -31,14 +31,14 @@ import Rss.Policy
 data User = User {
   userId :: Maybe ObjectId,
   userName :: UserName,
-  userFeeds :: [Feed],
+  userFeeds :: [ObjectId]
 } deriving (Show, Eq, Typeable)
 
 instance ToJSON User where
   toJSON (User id name feeds) =
     object [ "_id"       .= (show $ fromJust id)
            , "name"      .= name
-           , "feeds"    .= notifs
+           , "feeds"    .= (show feeds)
            ]
 
 instance DCRecord User where
@@ -52,8 +52,8 @@ instance DCRecord User where
 
   toDocument u = trace "toDoc user" $
     [ "_id"  -: userId u
-    , "name" -: userName u
-    , "feeds" -: userFeeds u
+    , "name" -: (userName u :: UserName)
+    , "feeds" -: (userFeeds u :: [ObjectId])
     ]
 
   recordCollection _ = "users"
@@ -62,7 +62,7 @@ data Feed = Feed {
   feedId :: Maybe ObjectId,
   feedTitle :: String,
   feedUrl :: String,
-  feedEntries :: [Entry]
+  feedEntries :: [ObjectId]
 } deriving (Show, Eq, Typeable)
 
 
@@ -71,19 +71,19 @@ instance ToJSON Feed where
     object [ "_id"       .= (show $ fromJust id)
            , "title"      .= title
            , "url"        .= url  
-           , "entries"    .= entries
+           , "entries"    .= show entries
            ]
 
 instance DCRecord Feed where
   fromDocument doc = trace "fromDoc feed" $ do
     let uid = lookupObjIdh "_id" doc
-    name <- lookup "name" doc
-    feeds <- lookup "feeds" doc
+    entries <- lookup "entries" doc
     url <- lookup "url" doc
+    title <- lookup "title" doc
     trace "returning feed" $ return Feed { feedId = uid
-                , feedName = name
+                , feedTitle = title
                 , feedUrl = url
-                , feedFeeds = feeds}
+                , feedEntries =  entries}
 
   toDocument f = trace "toDoc feed" $
     [ "_id"  -: feedId f
@@ -94,7 +94,7 @@ instance DCRecord Feed where
 
   recordCollection _ = "feeds"
 
- data Entry = Entry {
+data Entry = Entry {
   entryId :: Maybe ObjectId,
   entryTitle :: String,
   entryUrl :: String,
@@ -126,7 +126,7 @@ instance DCRecord Entry where
     content <- lookup "content" doc
     time <- lookup "time" doc 
     trace "returning entry" $ return Entry { entryId = uid
-                , entryTitle = name
+                , entryTitle = title
                 , entryUrl = url
                 , entryAuthor = author
                 , entrySummary = summary
@@ -144,3 +144,29 @@ instance DCRecord Entry where
     ]
 
   recordCollection _ = "entries"
+
+lookupObjId :: Monad m => FieldName -> HsonDocument -> m ObjectId
+lookupObjId n d = case lookup n d of
+    Just i -> return (i :: ObjectId)
+    _ -> case do { s <- lookup n d; maybeRead s } of
+          Just i -> return i
+          _ -> fail $ "lookupObjId: cannot extract id from " ++ show n
+  where maybeRead = fmap fst . listToMaybe . reads
+
+
+lookupObjIdh :: Monad m => FieldName -> HsonDocument -> m ObjectId
+lookupObjIdh n d = case lookup n d of
+    Just i -> return (i :: ObjectId)
+    _ -> case do { s <- lookup n d; maybeRead s } of
+          Just i -> return i
+          _ -> fail $ "lookupObjId: cannot extract id from " ++ show n
+  where maybeRead = fmap fst . listToMaybe . reads
+ 
+lookupObjIdb :: Monad m => FieldName -> BsonDocument -> m ObjectId
+lookupObjIdb n d = case lookup n d of
+    Just i -> return (i :: ObjectId)
+    _ -> case do { s <- lookup n d; maybeRead s } of
+          Just i -> return i
+          _ -> fail $ "lookupObjId: cannot extract id from " ++ show n
+  where maybeRead = fmap fst . listToMaybe . reads
+

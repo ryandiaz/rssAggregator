@@ -41,4 +41,4 @@ server = mkRouter $ do
  
   get "/" $ withUserOrDoAuth $ \user -> do
     priv <- appPriv
-    respond $ respondHtml $ 
+    respond $ respondHtml "Home" $ displayHomePage user
