@@ -49,7 +49,7 @@ server = mkRouter $ do
     ldoc <- request >>= labeledRequestToHson
     fdoc <- include ["feed"] `liftM` (request >>= labeledRequestToHson >>= (liftLIO. unlabelP priv))
     let feedUrl = ("feed" `at` fdoc) :: String
-    content <- liftLIO $ simpleGetHttpP priv feedUrl
+    content <- liftLIO $ simpleGetHttp feedUrl
     let bodyText = respBody content
     trace (L8.unpack bodyText) $ respond $ redirectTo "/"
 
